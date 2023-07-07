@@ -15,6 +15,15 @@ FPS = 40
 fon = pygame.image.load(file_path(r"images\background.png"))
 fon = pygame.transform.scale(fon, (WIN_WIDTH, WIN_HEIGHT))
 
+image_win = pygame.image.load(file_path(r"images\background_win.png"))
+image_win = pygame.transform.scale(image_win, (WIN_WIDTH, WIN_HEIGHT))
+
+image_lose = pygame.image.load(file_path(r"images\background_lose.png"))
+image_lose = pygame.transform.scale(image_lose, (WIN_WIDTH, WIN_HEIGHT))
+
+pygame.mixer.music.load(file_path(r"music\fon_music.mp3"))
+pygame.mixer.music.set_volume(0.25)
+pygame.mixer.music.play(-1)
 
 window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 clock = pygame.time.Clock()
@@ -41,28 +50,86 @@ class Player(GameSprite):
     def update(self):
         if self.speedx < 0 and self.rect.left > 0 or self.speedx > 0 and self.rect.right < WIN_WIDTH:
             self.rect.x += self.speedx
+        walls_touched = pygame.sprite.spritecollide(self, walls, False)
+        if self.speedx < 0:
+            for wall in walls_touched:
+                self.rect.left = max(self.rect.left, wall.rect.right)
+        elif self.speedx > 0:
+            for wall in walls_touched:
+                self.rect.right = min(self.rect.right, wall.rect.left)
+        
         if self.speedy < 0 and self.rect.top > 0 or self.speedy > 0 and self.rect.bottom < WIN_HEIGHT:
             self.rect.y += self.speedy
+        walls_touched = pygame.sprite.spritecollide(self, walls, False)
+        if self.speedy < 0:
+            for wall in walls_touched:
+                self.rect.top = max(self.rect.top, wall.rect.bottom)
+        elif self.speedy > 0:
+            for wall in walls_touched:
+                self.rect.bottom = min(self.rect.bottom, wall.rect.top)
+
+class Enemy(GameSprite):
+    def __init__(self, x, y, width, height, image, min_cord, max_cord, direction, speed):
+        super().__init__(x, y, width, height, image)
+        self.min_cord = min_cord
+        self.max_cord = max_cord
+        self.direction = direction
+        self.speed = speed
+
+    def update(self):
+        if self.direction == "left" or self.direction == "right":
+            if self.direction == "left":
+                self.rect.x -= self.speed
+            elif self.direction == "right":
+                self.rect.x += self.speed
+
+            if self.rect.right >= self.max_cord:
+                self.direction = "left"
+            elif self.rect.left <= self.min_cord:
+                self.direction = "right"
+
+        elif self.direction == "up" or self.direction == "down":
+            if self.direction == "up":
+                self.rect.y -= self.speed
+            elif self.direction == "down":
+                self.rect.y += self.speed
+
+            if self.rect.top <= self.min_cord:
+                self.direction = "down"
+            elif self.rect.bottom >= self.max_cord:
+                self.direction = "up"
+
+        
 
 player = Player(50, 250, 50, 50, r"images\player.png", 0, 0)
-enemy1 = GameSprite(340, 260, 30, 30, r"images\enemy.png")
-enemy2 = GameSprite(530, 360, 30, 30, r"images\enemy.png")
-enemy3 = GameSprite(800, 460, 30, 30, r"images\enemy.png")
+
+enemys = pygame.sprite.Group()
+enemy1 = Enemy(340, 260, 30, 30, r"images\enemy.png", 60, 500, "down", 7)
+enemy2 = Enemy(530, 360, 30, 30, r"images\enemy.png", 530, 850, "right", 5)
+enemy3 = Enemy(800, 460, 30, 30, r"images\enemy.png", 320, 800, "left", 4)
+enemy4 = Enemy(100, 480, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+enemy5 = Enemy(140, 470, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+enemy6 = Enemy(180, 460, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+enemy7 = Enemy(250, 150, 30, 30, r"images\enemy.png", 60, 320, "down", 8)
+enemy8 = Enemy(60, 60, 30, 30, r"images\enemy.png", 30, 750, "right", 8)
+enemy9 = Enemy(690, 60, 30, 30, r"images\enemy.png", 60, 420, "down", 6)
+enemys.add(enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9)
+
 finish = GameSprite(785, 60, 50, 50, r"images\chest.png")
 
 walls = pygame.sprite.Group()
 wall = GameSprite(10, 220, 20, 110, r"images\fall.png")
-wall1 = GameSprite(20, 220, 300, 20, r"images\fall.png")
-wall2 = GameSprite(20, 310, 300, 20, r"images\fall.png")
-wall3 = GameSprite(300, 310, 20, 200, r"images\fall.png")
-wall4 = GameSprite(300, 40, 20, 200, r"images\fall.png")
+wall1 = GameSprite(20, 20, 300, 20, r"images\fall.png")
+wall2 = GameSprite(20, 510, 300, 20, r"images\fall.png")
+wall3 = GameSprite(300, 310, 20, 40, r"images\fall.png")
+wall4 = GameSprite(300, 110, 20, 130, r"images\fall.png")
 wall5 = GameSprite(300, 510, 550, 20, r"images\fall.png")
 wall6 = GameSprite(300, 20, 550, 20, r"images\fall.png")
 wall7 = GameSprite(390, 420, 200, 20, r"images\fall.png")
 wall8 = GameSprite(850, 20, 20, 510, r"images\fall.png")
 wall9 = GameSprite(390, 110, 270, 20, r"images\fall.png")
 wall10 = GameSprite(750, 20, 20, 200, r"images\fall.png")
-wall11 = GameSprite(550, 200, 200, 20, r"images\fall.png")
+wall11 = GameSprite(550, 200, 130, 20, r"images\fall.png")
 wall12 = GameSprite(550, 110, 20, 100, r"images\fall.png")
 wall13 = GameSprite(390, 110, 20, 130, r"images\fall.png")
 wall14 = GameSprite(390, 310, 20, 40, r"images\fall.png")
@@ -72,8 +139,16 @@ wall17 = GameSprite(470, 200, 20, 120, r"images\fall.png")
 wall18 = GameSprite(760, 310, 100, 20, r"images\fall.png")
 wall19 = GameSprite(670, 420, 200, 20, r"images\fall.png")
 wall20 = GameSprite(500, 320, 20, 120, r"images\fall.png")
+wall21 = GameSprite(10, 320, 20, 210, r"images\fall.png")
+wall22 = GameSprite(10, 20, 20, 200, r"images\fall.png")
+wall23 = GameSprite(300, 420, 20, 90, r"images\fall.png")
+wall24 = GameSprite(100, 310, 200, 20, r"images\fall.png")
+wall25 = GameSprite(100, 110, 20, 130, r"images\fall.png")
+wall26 = GameSprite(110, 220, 120, 20, r"images\fall.png")
+wall27 = GameSprite(100, 110, 130, 20, r"images\fall.png")
+wall28 = GameSprite(300, 420, 20, 90, r"images\fall.png")
 walls.add(wall, wall1, wall2, wall3, wall4, wall5, wall6, wall7, wall8
-, wall9, wall10, wall11, wall12, wall13, wall14, wall15, wall16, wall17, wall18, wall19, wall20)
+, wall9, wall10, wall11, wall12, wall13, wall14, wall15, wall16, wall17, wall18, wall19, wall20, wall21, wall22, wall23, wall24, wall25, wall26, wall27)
 
 level = 1
 game = True
@@ -111,11 +186,22 @@ while game:
         window.blit(fon, (0, 0))
         player.show()
         player.update()
-        enemy1.show()
-        enemy2.show()
-        enemy3.show()
+        enemys.draw(window)
+        enemys.update()
         finish.show()
         walls.draw(window)
+
+        if pygame.sprite.collide_rect(player, finish):
+            level = 10
+            pygame.mixer.music.load(file_path(r"music\fon_music.mp3"))
+            pygame.mixer.music.set_volume(0.25)
+            pygame.mixer.music.play(-1)
+        
+    elif level == 10:
+        window.blit(image_win, (0, 0))
+
+    elif level == 11:
+        window.blit(image_lose, (0, 0))
 
     clock.tick(FPS)
     pygame.display.update()
