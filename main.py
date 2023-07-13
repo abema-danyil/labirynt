@@ -25,6 +25,9 @@ pygame.mixer.music.load(file_path(r"music\fon_music.mp3"))
 pygame.mixer.music.set_volume(0.25)
 pygame.mixer.music.play(-1)
 
+music_shot = pygame.mixer.Sound(file_path(r"music\rezkiy-zamah.ogg"))
+music_shot.set_volume(0.4)
+
 window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 clock = pygame.time.Clock()
 
@@ -67,6 +70,13 @@ class Player(GameSprite):
         elif self.speedy > 0:
             for wall in walls_touched:
                 self.rect.bottom = min(self.rect.bottom, wall.rect.top)
+    
+    def shot(self):
+        if self.direction == "right":
+            bullet = Bullet(self.rect.right, self.rect.centery, 10, 10, r"images\stone.png", 8)
+        elif self.direction == "left":
+            bullet = Bullet(self.rect.left - 10, self.rect.centery, 10, 10, r"images\stone.png", -8)
+        bullets.add(bullet)
 
 class Enemy(GameSprite):
     def __init__(self, x, y, width, height, image, min_cord, max_cord, direction, speed):
@@ -99,7 +109,17 @@ class Enemy(GameSprite):
             elif self.rect.bottom >= self.max_cord:
                 self.direction = "up"
 
-        
+class Bullet(GameSprite):
+    def __init__(self, x, y, width, height, image, speed):
+        super().__init__(x, y, width, height, image)
+        self.speed = speed
+
+    def update(self):
+        self.rect.x += self.speed
+        if self.rect.left >= WIN_WIDTH or self.rect.right <= 0:
+            self.kill()
+
+bullets = pygame.sprite.Group()
 
 player = Player(50, 250, 50, 50, r"images\player.png", 0, 0)
 
@@ -171,15 +191,18 @@ while game:
                     player.speedy = 4
                 if event.key == pygame.K_w:
                     player.speedy = -4
+                if event.key == pygame.K_SPACE:
+                    player.shot( )
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d:
                     player.speedx = 0
                 if event.key == pygame.K_a:
-                    player.speedx = 0
+                    player.speedx = 0 
                 if event.key == pygame.K_s:
                     player.speedy = 0
                 if event.key == pygame.K_w:
                     player.speedy = 0
+                music_shot.play()
 
 
     if level == 1:
@@ -190,12 +213,25 @@ while game:
         enemys.update()
         finish.show()
         walls.draw(window)
+        bullets.draw(window)
+        bullets.update()
 
         if pygame.sprite.collide_rect(player, finish):
             level = 10
-            pygame.mixer.music.load(file_path(r"music\fon_music.mp3"))
+            pygame.mixer.music.load(file_path(r"music\win_game.ogg"))
             pygame.mixer.music.set_volume(0.25)
             pygame.mixer.music.play(-1)
+        
+        if pygame.sprite.spritecollide(player, enemys, False):
+            level = 11
+            pygame.mixer.music.load(file_path(r"music\fail_game.ogg"))
+            pygame.mixer.music.set_volume(0.25)
+            pygame.mixer.music.play(-1)
+
+        pygame.sprite.groupcollide(bullets, walls, True, False)
+
+        pygame.sprite.groupcollide(bullets, enemys, True, True)
+        
         
     elif level == 10:
         window.blit(image_win, (0, 0))
