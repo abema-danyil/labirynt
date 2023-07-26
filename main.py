@@ -11,9 +11,21 @@ def file_path(file_name):
 WIN_WIDTH = 900
 WIN_HEIGHT = 600
 FPS = 40
+WHITE = (255, 255, 255)
+BROWN = (30, 20, 20)
+LIGHT_BROWN = (99, 49, 49)
+RED = (255, 9, 9)
+DARK_RED = (203, 9, 9)
+LIGHT_RED = (165, 76, 76)
+YELLOW = (228, 206, 41)
+BLUE = (65, 59, 255)
+GREEN = (58, 115, 36)
 
 fon = pygame.image.load(file_path(r"images\background.png"))
 fon = pygame.transform.scale(fon, (WIN_WIDTH, WIN_HEIGHT))
+
+image_menu = pygame.image.load(file_path(r"images\background_menu.png"))
+image_menu = pygame.transform.scale(image_menu, (WIN_WIDTH, WIN_HEIGHT))
 
 image_win = pygame.image.load(file_path(r"images\background_win.png"))
 image_win = pygame.transform.scale(image_win, (WIN_WIDTH, WIN_HEIGHT))
@@ -21,12 +33,14 @@ image_win = pygame.transform.scale(image_win, (WIN_WIDTH, WIN_HEIGHT))
 image_lose = pygame.image.load(file_path(r"images\background_lose.png"))
 image_lose = pygame.transform.scale(image_lose, (WIN_WIDTH, WIN_HEIGHT))
 
-pygame.mixer.music.load(file_path(r"music\fon_music.mp3"))
-pygame.mixer.music.set_volume(0.25)
+pygame.mixer.music.load(file_path(r"music\fon_music_menu.ogg"))
+pygame.mixer.music.set_volume(0.5)
 pygame.mixer.music.play(-1)
 
 music_shot = pygame.mixer.Sound(file_path(r"music\rezkiy-zamah.ogg"))
 music_shot.set_volume(0.4)
+
+game_name = pygame.font.SysFont("monaco", 100, 1).render("Teraria", True, GREEN)
 
 window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 clock = pygame.time.Clock()
@@ -119,6 +133,24 @@ class Bullet(GameSprite):
         if self.rect.left >= WIN_WIDTH or self.rect.right <= 0:
             self.kill()
 
+class Button():
+    def __init__(self, x, y, width, height, color_btn, color_collide, color_text, text, text_size, px, py):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.color_btn = color_btn
+        self.color_collide = color_collide
+        self.color = color_btn
+        font = pygame.font.SysFont("Arial", text_size)
+        self.text = font.render(text, True, color_text)
+        self.px = px
+        self.py = py
+
+    def show(self):
+        pygame.draw.rect(window, self.color, self.rect)
+        window.blit(self.text, (self.rect.x + self.px, self.rect.y + self.py))
+ 
+btn_start = Button(200, 350, 200, 80, BLUE, DARK_RED, YELLOW, "START", 70, 10, 0)
+btn_exit = Button(490, 350, 200, 80, BLUE, DARK_RED, YELLOW, " EXIT", 70, 10, 0)
+
 bullets = pygame.sprite.Group()
 
 player = Player(50, 250, 50, 50, r"images\player.png", 0, 0)
@@ -136,6 +168,10 @@ enemy9 = Enemy(690, 60, 30, 30, r"images\enemy.png", 60, 420, "down", 6)
 enemys.add(enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9)
 
 finish = GameSprite(785, 60, 50, 50, r"images\chest.png")
+
+key = GameSprite(250, 470, 40, 20, r"images\key.png")
+
+wall_key = GameSprite(750, 150, 110, 20, r"images\fall.png")
 
 walls = pygame.sprite.Group()
 wall = GameSprite(10, 220, 20, 110, r"images\fall.png")
@@ -170,7 +206,7 @@ wall28 = GameSprite(300, 420, 20, 90, r"images\fall.png")
 walls.add(wall, wall1, wall2, wall3, wall4, wall5, wall6, wall7, wall8
 , wall9, wall10, wall11, wall12, wall13, wall14, wall15, wall16, wall17, wall18, wall19, wall20, wall21, wall22, wall23, wall24, wall25, wall26, wall27)
 
-level = 1
+level = 0
 game = True
 
 while game:
@@ -203,7 +239,47 @@ while game:
                 if event.key == pygame.K_w:
                     player.speedy = 0
                 music_shot.play()
+        
+        elif level == 0:
+            if event.type == pygame.MOUSEMOTION:
+                x, y = event.pos
+                if btn_start.rect.collidepoint(x, y):
+                    btn_start.color = btn_start.color_collide
+                elif btn_exit.rect.collidepoint(x, y):
+                    btn_exit.color = btn_exit.color_collide
+                else:
+                    btn_start.color = btn_start.color_btn
+                    btn_exit.color = btn_exit.color_btn
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if btn_start.rect.collidepoint(x, y):
+                    level = 1
+                elif btn_exit.rect.collidepoint(x, y):
+                    game = False
 
+        elif level == 11:
+            if event.type == pygame.MOUSEMOTION:
+                x, y = event.pos
+                if btn_exit.rect.collidepoint(x, y):
+                    btn_exit.color = btn_exit.color_collide
+                else:
+                    btn_exit.color = btn_exit.color_btn
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if btn_exit.rect.collidepoint(x, y):
+                    game = False
+
+        elif level == 10:
+            if event.type == pygame.MOUSEMOTION:
+                x, y = event.pos
+                if btn_exit.rect.collidepoint(x, y):
+                    btn_exit.color = btn_exit.color_collide
+                else:
+                    btn_exit.color = btn_exit.color_btn
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = event.pos
+                if btn_exit.rect.collidepoint(x, y):
+                    game = False
 
     if level == 1:
         window.blit(fon, (0, 0))
@@ -215,6 +291,8 @@ while game:
         walls.draw(window)
         bullets.draw(window)
         bullets.update()
+        key.show()
+        wall_key.show()
 
         if pygame.sprite.collide_rect(player, finish):
             level = 10
@@ -232,12 +310,19 @@ while game:
 
         pygame.sprite.groupcollide(bullets, enemys, True, True)
         
+    elif level == 0:
+        window.blit(image_menu, (0, 0))
+        window.blit(game_name, (300, 100))
+        btn_start.show()
+        btn_exit.show()
         
     elif level == 10:
         window.blit(image_win, (0, 0))
+        btn_exit.show()
 
     elif level == 11:
         window.blit(image_lose, (0, 0))
+        btn_exit.show()
 
     clock.tick(FPS)
     pygame.display.update()
