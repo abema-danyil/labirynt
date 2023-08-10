@@ -15,6 +15,7 @@ WHITE = (255, 255, 255)
 YELLOW = (228, 206, 41)
 BLUE = (65, 59, 255)
 GREEN = (58, 115, 36)
+DARK_RED = (203, 9, 9)
 
 fon = pygame.image.load(file_path(r"images\background.png"))
 fon = pygame.transform.scale(fon, (WIN_WIDTH, WIN_HEIGHT))
