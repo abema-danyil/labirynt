@@ -36,6 +36,9 @@ pygame.mixer.music.play(-1)
 music_shot = pygame.mixer.Sound(file_path(r"music\rezkiy-zamah.ogg"))
 music_shot.set_volume(0.4)
 
+music_key = pygame.mixer.Sound(file_path(r"music\open_key.ogg"))
+music_key.set_volume(0.4)
+
 game_name = pygame.font.SysFont("monaco", 100, 1).render("Teraria", True, GREEN)
 
 window = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -95,29 +98,39 @@ class Enemy(GameSprite):
         self.max_cord = max_cord
         self.direction = direction
         self.speed = speed
+        self.can_go = True
+        self.timer = 75
 
     def update(self):
-        if self.direction == "left" or self.direction == "right":
-            if self.direction == "left":
-                self.rect.x -= self.speed
-            elif self.direction == "right":
-                self.rect.x += self.speed
+        if self.can_go == True:
+            if self.direction == "left" or self.direction == "right":
+                if self.direction == "left":
+                    self.rect.x -= self.speed
+                elif self.direction == "right":
+                    self.rect.x += self.speed
 
-            if self.rect.right >= self.max_cord:
-                self.direction = "left"
-            elif self.rect.left <= self.min_cord:
-                self.direction = "right"
+                if self.rect.right >= self.max_cord:
+                    self.direction = "left"
+                elif self.rect.left <= self.min_cord:
+                    self.direction = "right"
 
-        elif self.direction == "up" or self.direction == "down":
-            if self.direction == "up":
-                self.rect.y -= self.speed
-            elif self.direction == "down":
-                self.rect.y += self.speed
+            elif self.direction == "up" or self.direction == "down":
+                if self.direction == "up":
+                     self.rect.y -= self.speed
+                elif self.direction == "down":
+                     self.rect.y += self.speed
 
-            if self.rect.top <= self.min_cord:
-                self.direction = "down"
-            elif self.rect.bottom >= self.max_cord:
-                self.direction = "up"
+                if self.rect.top <= self.min_cord:
+                    self.direction = "down"
+                elif self.rect.bottom >= self.max_cord:
+                    self.direction = "up"
+
+        else:
+            self.timer -= 1
+            if self.timer == 0:
+                self.timer = 75
+                self.can_go = True
+
 
 class Bullet(GameSprite):
     def __init__(self, x, y, width, height, image, speed):
@@ -146,6 +159,7 @@ class Button():
  
 btn_start = Button(200, 350, 200, 80, BLUE, DARK_RED, YELLOW, "START", 70, 10, 0)
 btn_exit = Button(490, 350, 200, 80, BLUE, DARK_RED, YELLOW, " EXIT", 70, 10, 0)
+btn_restart = Button(160, 350, 280, 80, BLUE, DARK_RED, YELLOW, "RESTART", 70, 10, 0)
 
 bullets = pygame.sprite.Group()
 
@@ -200,7 +214,7 @@ wall26 = GameSprite(110, 220, 120, 20, r"images\fall.png")
 wall27 = GameSprite(100, 110, 130, 20, r"images\fall.png")
 wall28 = GameSprite(300, 420, 20, 90, r"images\fall.png")
 walls.add(wall, wall1, wall2, wall3, wall4, wall5, wall6, wall7, wall8
-, wall9, wall10, wall11, wall12, wall13, wall14, wall15, wall16, wall17, wall18, wall19, wall20, wall21, wall22, wall23, wall24, wall25, wall26, wall27)
+, wall9, wall10, wall11, wall12, wall13, wall14, wall15, wall16, wall17, wall18, wall19, wall20, wall21, wall22, wall23, wall24, wall25, wall26, wall27, wall_key)
 
 level = 0
 game = True
@@ -225,6 +239,7 @@ while game:
                     player.speedy = -4
                 if event.key == pygame.K_SPACE:
                     player.shot( )
+                    music_shot.play()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_d:
                     player.speedx = 0
@@ -234,7 +249,6 @@ while game:
                     player.speedy = 0
                 if event.key == pygame.K_w:
                     player.speedy = 0
-                music_shot.play()
         
         elif level == 0:
             if event.type == pygame.MOUSEMOTION:
@@ -258,24 +272,74 @@ while game:
                 x, y = event.pos
                 if btn_exit.rect.collidepoint(x, y):
                     btn_exit.color = btn_exit.color_collide
+                if btn_restart.rect.collidepoint(x, y):
+                    btn_restart.color = btn_exit.color_collide                    
                 else:
                     btn_exit.color = btn_exit.color_btn
+                    btn_restart.color = btn_exit.color_btn
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if btn_exit.rect.collidepoint(x, y):
                     game = False
+                if btn_restart.rect.collidepoint(x, y):
+                    key.rect.x = 250
+                    wall_key.rect.x = 750
+                    finish = GameSprite(785, 60, 50, 50, r"images\chest.png")
+                    player = Player(50, 250, 50, 50, r"images\player.png", 0, 0)
+                    enemys = pygame.sprite.Group()
+                    enemy1 = Enemy(340, 260, 30, 30, r"images\enemy.png", 60, 500, "down", 7)
+                    enemy2 = Enemy(530, 360, 30, 30, r"images\enemy.png", 530, 850, "right", 5)
+                    enemy3 = Enemy(800, 460, 30, 30, r"images\enemy.png", 320, 800, "left", 4)
+                    enemy4 = Enemy(100, 480, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy5 = Enemy(140, 470, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy6 = Enemy(180, 460, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy7 = Enemy(250, 150, 30, 30, r"images\enemy.png", 60, 320, "down", 8)
+                    enemy8 = Enemy(60, 60, 30, 30, r"images\enemy.png", 30, 750, "right", 8)
+                    enemy9 = Enemy(690, 60, 30, 30, r"images\enemy.png", 60, 420, "down", 6)
+                    enemys.add(enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9)
+                    pygame.mixer.music.load(file_path(r"music\fon_music_menu.ogg"))
+                    pygame.mixer.music.set_volume(0.5)
+                    pygame.mixer.music.play(-1)
+                    bullets.empty()
+                    level = 1
 
         elif level == 10:
             if event.type == pygame.MOUSEMOTION:
                 x, y = event.pos
                 if btn_exit.rect.collidepoint(x, y):
                     btn_exit.color = btn_exit.color_collide
+                if btn_restart.rect.collidepoint(x, y):
+                    btn_restart.color = btn_exit.color_collide   
                 else:
                     btn_exit.color = btn_exit.color_btn
+                    btn_restart.color = btn_exit.color_btn
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 if btn_exit.rect.collidepoint(x, y):
                     game = False
+                if btn_restart.rect.collidepoint(x, y):
+                    key.rect.x = 250
+                    wall_key.rect.x = 750
+                    finish = GameSprite(785, 60, 50, 50, r"images\chest.png")
+                    player = Player(50, 250, 50, 50, r"images\player.png", 0, 0)
+                    enemys = pygame.sprite.Group()
+                    enemy1 = Enemy(340, 260, 30, 30, r"images\enemy.png", 60, 500, "down", 7)
+                    enemy2 = Enemy(530, 360, 30, 30, r"images\enemy.png", 530, 850, "right", 5)
+                    enemy3 = Enemy(800, 460, 30, 30, r"images\enemy.png", 320, 800, "left", 4)
+                    enemy4 = Enemy(100, 480, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy5 = Enemy(140, 470, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy6 = Enemy(180, 460, 30, 30, r"images\enemy.png", 340, 500, "up", 2.5)
+                    enemy7 = Enemy(250, 150, 30, 30, r"images\enemy.png", 60, 320, "down", 8)
+                    enemy8 = Enemy(60, 60, 30, 30, r"images\enemy.png", 30, 750, "right", 8)
+                    enemy9 = Enemy(690, 60, 30, 30, r"images\enemy.png", 60, 420, "down", 6)
+                    enemys.add(enemy1, enemy2, enemy3, enemy4, enemy5, enemy6, enemy7, enemy8, enemy9)
+                    pygame.mixer.music.load(file_path(r"music\fon_music_menu.ogg"))
+                    pygame.mixer.music.set_volume(0.5)
+                    pygame.mixer.music.play(-1)
+                    bullets.empty()
+                    level = 1
+
 
     if level == 1:
         window.blit(fon, (0, 0))
@@ -295,16 +359,27 @@ while game:
             pygame.mixer.music.load(file_path(r"music\win_game.ogg"))
             pygame.mixer.music.set_volume(0.25)
             pygame.mixer.music.play(-1)
-        
-        if pygame.sprite.spritecollide(player, enemys, False):
-            level = 11
-            pygame.mixer.music.load(file_path(r"music\fail_game.ogg"))
-            pygame.mixer.music.set_volume(0.25)
-            pygame.mixer.music.play(-1)
+
+        if pygame.sprite.collide_rect(player, key):
+            music_key.play()
+            wall_key.rect.x = -200
+            key.rect.x = -200
+
+        enemys_col = pygame.sprite.spritecollide(player, enemys, False)
+        if enemys_col:
+            for enemy in enemys_col:
+                if enemy.can_go == True:
+                    level = 11
+                    pygame.mixer.music.load(file_path(r"music\fail_game.ogg"))
+                    pygame.mixer.music.set_volume(0.25)
+                    pygame.mixer.music.play(-1)
 
         pygame.sprite.groupcollide(bullets, walls, True, False)
 
-        pygame.sprite.groupcollide(bullets, enemys, True, True)
+        enemy_bul = pygame.sprite.groupcollide(enemys, bullets, False, True)
+        if enemy_bul:
+            for enemy in enemy_bul:
+                enemy.can_go = False
         
     elif level == 0:
         window.blit(image_menu, (0, 0))
@@ -315,10 +390,12 @@ while game:
     elif level == 10:
         window.blit(image_win, (0, 0))
         btn_exit.show()
+        btn_restart.show()
 
     elif level == 11:
         window.blit(image_lose, (0, 0))
         btn_exit.show()
+        btn_restart.show()
 
     clock.tick(FPS)
     pygame.display.update()
